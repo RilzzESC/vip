@@ -20,7 +20,8 @@ sleep 2
 echo -e "${GREEN}Pilih menu:${NC}"
 echo -e "1) Install Trojan & VMess"
 echo -e "2) Hapus Instalasi"
-echo -e "3) Keluar"
+echo -e "3) Tambah User"
+echo -e "4) Keluar"
 echo -n "Masukkan pilihan Anda: "
 read -r MENU_CHOICE
 
@@ -37,6 +38,35 @@ case $MENU_CHOICE in
         exit 0
         ;;
     3)
+        echo -e "${GREEN}Menambahkan user baru...${NC}"
+        echo -e "${GREEN}[?] Masukkan username: ${NC}"
+        read -r USERNAME
+        echo -e "${GREEN}[?] Masukkan durasi (hari): ${NC}"
+        read -r DURATION
+        EXPIRY_DATE=$(date -d "+$DURATION days" +%Y-%m-%d)
+        
+        # Menambahkan user ke Trojan
+        PASSWORD=$(openssl rand -hex 6)
+        sed -i "s/\"password\": \[/\"password\": [\"$PASSWORD\", /" /etc/trojan/config.json
+        
+        # Menambahkan user ke VMess
+        UUID=$(uuidgen)
+        sed -i "s/\"clients\": \[/\"clients\": [{\"id\": \"$UUID\", \"alterId\": 0}, /" /usr/local/etc/v2ray/config.json
+        
+        systemctl restart trojan
+        systemctl restart v2ray
+        
+        echo "$USERNAME $PASSWORD $UUID $EXPIRY_DATE" >> /etc/vpn_users.txt
+        echo "sudo sed -i '/$USERNAME/d' /etc/vpn_users.txt && sudo systemctl restart trojan v2ray" | at midnight $DURATION days
+        
+        echo -e "${GREEN}User berhasil ditambahkan!${NC}"
+        echo -e "🔹 Username: ${GREEN}$USERNAME${NC}"
+        echo -e "🔹 Password Trojan: ${GREEN}$PASSWORD${NC}"
+        echo -e "🔹 UUID VMess: ${GREEN}$UUID${NC}"
+        echo -e "🔹 Masa berlaku: ${GREEN}$EXPIRY_DATE${NC}"
+        exit 0
+        ;;
+    4)
         echo -e "${YELLOW}Keluar...${NC}"
         exit 0
         ;;
@@ -119,6 +149,7 @@ cat > /usr/local/etc/v2ray/config.json <<EOF
 EOF
 systemctl restart v2ray
 systemctl enable v2ray
+
 
 # Output Informasi
 clear
