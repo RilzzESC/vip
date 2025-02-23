@@ -9,18 +9,52 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Variabel Konfigurasi
-DOMAIN="yourdomain.com"  # Ganti dengan domain Anda
-EMAIL="admin@yourdomain.com"  # Email untuk Let's Encrypt
-TROJAN_PATH="/trojan"  # Path WebSocket untuk Trojan
-VMESS_PATH="/vmess"  # Path WebSocket untuk VMess
-
 # Banner
 clear
 echo -e "${YELLOW}=============================================${NC}"
 echo -e "${GREEN}  🚀 Auto-Installer Trojan & VMess 🚀  ${NC}"
 echo -e "${YELLOW}=============================================${NC}"
 sleep 2
+
+# Menu utama
+echo -e "${GREEN}Pilih menu:${NC}"
+echo -e "1) Install Trojan & VMess"
+echo -e "2) Hapus Instalasi"
+echo -e "3) Keluar"
+echo -n "Masukkan pilihan Anda: "
+read -r MENU_CHOICE
+
+case $MENU_CHOICE in
+    1)
+        echo -e "${GREEN}Memulai instalasi...${NC}"
+        ;;
+    2)
+        echo -e "${RED}Menghapus instalasi...${NC}"
+        systemctl stop trojan v2ray
+        systemctl disable trojan v2ray
+        rm -rf /etc/trojan /usr/local/etc/v2ray ~/.acme.sh
+        echo -e "${GREEN}Uninstall selesai!${NC}"
+        exit 0
+        ;;
+    3)
+        echo -e "${YELLOW}Keluar...${NC}"
+        exit 0
+        ;;
+    *)
+        echo -e "${RED}Pilihan tidak valid!${NC}"
+        exit 1
+        ;;
+esac
+
+# Meminta input pengguna
+echo -e "${GREEN}[?] Masukkan domain Anda: ${NC}"
+read -r DOMAIN
+echo -e "${GREEN}[?] Masukkan email Anda (untuk SSL): ${NC}"
+read -r EMAIL
+echo -e "${GREEN}[?] Masukkan path WebSocket untuk Trojan (misal: /trojan): ${NC}"
+read -r TROJAN_PATH
+echo -e "${GREEN}[?] Masukkan path WebSocket untuk VMess (misal: /vmess): ${NC}"
+read -r VMESS_PATH
 
 # Update & Install Dependencies
 echo -e "${GREEN}[+] Updating system & installing dependencies...${NC}"
